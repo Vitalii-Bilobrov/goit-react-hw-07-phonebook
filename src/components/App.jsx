@@ -15,7 +15,20 @@ export class App extends Component {
     ],
     filter: '',
   };
-
+  componentDidMount() {
+    const savedContacts = JSON.parse(localStorage.getItem('contacts'));
+    if (savedContacts) {
+      this.setState({
+        contacts: savedContacts,
+      });
+    }
+  }
+  componentDidUpdate(_, prevState) {
+    const { contacts } = this.state;
+    if (contacts !== prevState.contacts) {
+      localStorage.setItem('contacts', JSON.stringify(contacts));
+    }
+  }
   formSubmitHandler = data => {
     const isInContacts = this.state.contacts.some(
       contact => contact.name.toLowerCase() === data.name.toLowerCase()
