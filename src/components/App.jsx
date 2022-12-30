@@ -1,95 +1,74 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { Form } from './Form/Form';
 import { ContactList } from './ContactList/ContactList';
 import { Filter } from './Filter/Filter';
 import { Notification } from './Notification/Notification';
 import { nanoid } from 'nanoid';
 
-export class App extends Component {
-  state = {
-    contacts: [
-      // { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      // { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      // { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      // { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-  };
-  componentDidMount() {
-    const savedContacts = JSON.parse(localStorage.getItem('contacts'));
-    if (savedContacts) {
-      this.setState({
-        contacts: savedContacts,
-      });
-    }
-  }
-  componentDidUpdate(_, prevState) {
-    const { contacts } = this.state;
-    if (contacts !== prevState.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(contacts));
-    }
-  }
-  formSubmitHandler = data => {
-    const isInContacts = this.state.contacts.some(
-      contact => contact.name.toLowerCase() === data.name.toLowerCase()
+export const App = () => {
+  const [contacts, setContacts] = useState(
+    () => JSON.parse(localStorage.getItem('contacts')) ?? []
+  );
+  const [filter, setFilter] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
+
+  const formSubmitHandler = ({ name, number }) => {
+    const isInContacts = contacts.find(
+      contact => name.toLowerCase() === contact.name.toLowerCase()
     );
     if (isInContacts) {
-      alert('Already included');
+      alert(`${name} is already in contacts.`);
       return;
     }
 
-    const newContact = { ...data, id: nanoid() };
+    const newContact = {
+      id: nanoid(),
+      name,
+      number,
+    };
 
-    this.setState(prevState => {
-      return { contacts: [newContact, ...prevState.contacts] };
-    });
+    setContacts(prev => [newContact, ...prev]);
   };
 
-  onFilterContacts = e => {
-    this.setState({ filter: e.currentTarget.value });
-  };
-  filterArrContacts = () => {
-    const { contacts, filter } = this.state;
-    return contacts.filter(current =>
-      current.name.toLowerCase().includes(filter.toLowerCase())
+  const filterArrContacts = () => {
+    const normalizedFilter = filter.toLowerCase();
+
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(normalizedFilter)
     );
   };
 
-  onDeleteContact = id => {
-    return this.setState(({ contacts }) => {
-      return {
-        contacts: contacts.filter(contact => contact.id !== id),
-        filter: '',
-      };
-    });
+  const onDeleteContact = contactId => {
+    setContacts(prev => prev.filter(contact => contact.id !== contactId));
   };
 
-  render() {
-    const filterContacts = this.filterArrContacts();
-    return (
-      <>
-        <div>
-          <h1>Phonebook</h1>
-          <Form onSubmit={this.formSubmitHandler} />
-        </div>
-        <div>
-          {filterContacts.length > 0 ? (
-            <>
-              <h2>Contacts</h2>
-              <Filter
-                filter={this.onFilterContacts}
-                value={this.state.filter}
-              />
-              <ContactList
-                filteredlist={filterContacts}
-                onDeleteContact={this.onDeleteContact}
-              />
-            </>
-          ) : (
-            <Notification message="There is no any contacts - create the first one!" />
-          )}
-        </div>
-      </>
-    );
-  }
-}
+  const onFilterContacts = evt => setFilter(evt.target.value);
+
+  const filterContacts = filterArrContacts();
+
+  return (
+    <>
+      <div>
+        <h1>Phonebook</h1>
+        <Form onSubmit={formSubmitHandler} />
+      </div>
+      <div>
+        {filterContacts.length > 0 ? (
+          <>
+            <h2>Contacts</h2>
+            <Filter filter={onFilterContacts} value={filter} />
+            <ContactList
+              filteredlist={filterContacts}
+              onDeleteContact={onDeleteContact}
+            />
+          </>
+        ) : (
+          <Notification message="There is no any contacts - create the first one!" />
+        )}
+      </div>
+    </>
+  );
+};
