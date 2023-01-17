@@ -1,13 +1,20 @@
 import React from 'react';
 import { PropTypes } from 'prop-types';
+import { useDispatch, useSelector } from 'react-redux';
+import { changeFilter } from 'Redux/filterSlice';
 
-export const Filter = ({ filter, value }) => {
+export const Filter = () => {
+  const dispatch = useDispatch();
+  const filter = useSelector(state => state.filter);
+  const handleChange = e => {
+    dispatch(changeFilter(e.target.value));
+  };
   return (
     <>
       <label>Find contact by name</label>
       <input
-        onChange={filter}
-        value={value}
+        onChange={handleChange}
+        value={filter}
         type="text"
         name="name"
         pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
