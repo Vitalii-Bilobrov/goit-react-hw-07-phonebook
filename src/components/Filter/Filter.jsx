@@ -2,10 +2,11 @@ import React from 'react';
 import { PropTypes } from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 import { changeFilter } from 'Redux/filterSlice';
+import { selectFilter } from 'Redux/selectors';
 
 export const Filter = () => {
   const dispatch = useDispatch();
-  const filter = useSelector(state => state.filter);
+  const filter = useSelector(selectFilter);
   const handleChange = e => {
     dispatch(changeFilter(e.target.value));
   };
